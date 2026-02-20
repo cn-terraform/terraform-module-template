@@ -48,9 +48,8 @@ No resources.
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | Name prefix for resources on AWS | `string` | n/a | yes |
-| <a name="input_region"></a> [region](#input\_region) | AWS Region the infrastructure is hosted in | `string` | n/a | yes |
-| <a name="input_tags"></a> [tags](#input\_tags) | Resource tags | `map(string)` | `{}` | no |
+| <a name="input_additional_tags"></a> [additional\_tags](#input\_additional\_tags) | (Optional) A map of tags to assign to all the resources. If configured with a provider default\_tags configuration block present, tags with matching keys will overwrite those defined at the provider-level. | `map(string)` | `{}` | no |
+| <a name="input_name_prefix"></a> [name\_prefix](#input\_name\_prefix) | (Required) The prefix to use for naming resources created in this module. | `string` | n/a | yes |
 
 ## Outputs
 
