@@ -8,11 +8,6 @@ on:
   release:
     types: [published]
 
-env:
-  DEFAULT_REGION: us-east-1
-  AWS_ACCESS_KEY_ID: localstack
-  AWS_SECRET_ACCESS_KEY: localstack
-
 jobs:
   check-format:
     runs-on: ubuntu-latest
@@ -45,13 +40,6 @@ jobs:
     strategy:
       matrix:
         dir: ${{ fromJson(needs.discover-examples.outputs.matrix) }}
-    services:
-      localstack:
-        image: localstack/localstack
-        env:
-          SERVICES: apigateway,cloudformation,cloudwatch,dynamodb,es,firehose,iam,kinesis,lambda,route53,redshift,s3,secretsmanager,ses,sns,sqs,ssm,stepfunctions,sts
-        ports:
-          - 4566:4566
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -61,6 +49,39 @@ jobs:
       - name: Terraform Validate
         run: terraform validate
         working-directory: ${{ matrix.dir }}
-      - name: Terraform Plan (Mock)
-        run: terraform plan
+      - name: Terraform Test (Mocked AWS)
+        run: |
+          if grep -Eq "aws\.(main|acm_provider)" main.tf; then
+            cat > ci-mock.tftest.hcl <<EOF
+          mock_provider "aws" {
+            alias = "ci_main"
+            override_during = plan
+          }
+          mock_provider "aws" {
+            alias = "ci_acm"
+            override_during = plan
+          }
+          run "example_plan" {
+            command = plan
+            providers = {
+              aws.main = aws.ci_main
+              aws.acm_provider = aws.ci_acm
+            }
+          }
+          EOF
+          else
+            cat > ci-mock.tftest.hcl <<EOF
+          mock_provider "aws" {
+            alias = "ci"
+            override_during = plan
+          }
+          run "example_plan" {
+            command = plan
+            providers = {
+              aws = aws.ci
+            }
+          }
+          EOF
+          fi
+          terraform test -filter=ci-mock.tftest.hcl
         working-directory: ${{ matrix.dir }}
