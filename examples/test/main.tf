@@ -1,5 +1,5 @@
-module "sonar" {
-  source      = "../../"
-  name_prefix = "template"
-  region      = "us-east-1"
+module "example" {
+  source          = "../../"
+  name_prefix     = "example"
+  additional_tags = {}
 }
